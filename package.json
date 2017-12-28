@@ -1,0 +1,23 @@
+{
+  "name": "airtable-moltin",
+  "version": "1.0.0",
+  "description": "import data from airtable to moltin",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matthew1809/Airtable-Moltin.git"
+  },
+  "keywords": [
+    "airtable",
+    "moltin"
+  ],
+  "author": "Matthew Foyle",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/matthew1809/Airtable-Moltin/issues"
+  },
+  "homepage": "https://github.com/matthew1809/Airtable-Moltin#readme"
+}

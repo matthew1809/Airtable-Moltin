@@ -3,6 +3,9 @@ var exports = module.exports = {};
 require('dotenv').config();
 const stubs = require('../stubs/moltin-stubs.js');
 const MoltinGateway = require('@moltin/sdk').gateway;
+const rp = require('request-promise');
+var https = require('https');
+const fs = require('fs');
 
 const Moltin = MoltinGateway({
   client_id: process.env.CLIENT_ID,
@@ -30,13 +33,14 @@ const categories = [
 
 exports.category = function(name) {
 	return categories.find(category => {
-   		return category.name == name;
+   	return category.name == name;
 	});
 }
 
-exports.addProductCategoryRelationship = (productID, categoryID) => {
-   return Moltin.Products.CreateRelationships(productID, 'category', categoryID);
+exports.addProductRelationship = (productID, type, ID) => {
+  return Moltin.Products.CreateRelationships(productID, type, ID);
 };
+
 
 exports.getAllProducts = () => {return Moltin.Products.All()};
 
@@ -54,4 +58,55 @@ exports.deleteAllProducts = () => {
   }).catch((e) => {
     console.log(e);
   });
-}
+};
+
+exports.manualAuth = () => {
+  return Moltin.Authenticate()
+};
+
+exports.uploadFile = (productID, name, path) => {
+
+  exports.manualAuth()
+
+  .then((response) => {
+
+    const options = {
+      method: 'POST',
+      headers: {'Content-Type': 'multipart/form-data', 'Authorization': response.access_token},
+      uri: 'https://api.moltin.com/v2/files',
+      formData: {
+        file: fs.createReadStream(path)
+      },
+      json: true
+    };
+
+    return rp(options)
+    .then(function (res) {
+
+      console.log("the product ID is " + productID + ". The file ID is " + res.data.id)
+      exports.addProductRelationship(productID, 'file', res.data.id)
+      .then((res) => {
+        console.log(res);
+      }).catch((e) => {
+        console.log(e);
+      })
+
+    })
+    .catch(function (err) {
+      console.log(err);
+    });
+
+  });
+};
+
+exports.fetchAndUploadFile = async (productID, name, url, path) => {
+
+  var file = fs.createWriteStream(name + ".jpg");
+
+  await https.get(url, function(response) {
+    response.pipe(file);
+  });
+
+  return exports.uploadFile(productID, name, path)
+
+};

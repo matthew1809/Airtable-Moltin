@@ -48,65 +48,45 @@ exports.createProduct = (data) => {return Moltin.Products.Create(data)};
 
 exports.deleteProduct = (data) => {return Moltin.Products.Delete(data)};
 
-exports.deleteAllProducts = () => {
-  return exports.getAllProducts()
-  .then((res) => {
+exports.deleteAllProducts = async () => {
 
-    res.data.forEach(function(product) {
+  var getAllProducts = await exports.getAllProducts()
+ 
+    getAllProducts.data.forEach(function(product) {
       return exports.deleteProduct(product.id);
-    })
-  }).catch((e) => {
-    console.log(e);
-  });
+    });
 };
 
 exports.manualAuth = () => {
   return Moltin.Authenticate()
 };
 
-exports.uploadFile = (productID, name, path) => {
+exports.uploadFile = async (productID, name, path) => {
+  
+  var auth = await exports.manualAuth()
 
-  exports.manualAuth()
+  const options = {
+    method: 'POST',
+    headers: {'Content-Type': 'multipart/form-data', 'Authorization': auth.access_token},
+    uri: 'https://api.moltin.com/v2/files',
+    formData: {
+      file: fs.createReadStream(path)
+    },
+    json: true
+  };
 
-  .then((response) => {
+  var fetchFile = await rp(options)
 
-    const options = {
-      method: 'POST',
-      headers: {'Content-Type': 'multipart/form-data', 'Authorization': response.access_token},
-      uri: 'https://api.moltin.com/v2/files',
-      formData: {
-        file: fs.createReadStream(path)
-      },
-      json: true
-    };
+  var addRelationship = await exports.addProductRelationship(productID, 'file', fetchFile.data.id)
 
-    return rp(options)
-    .then(function (res) {
-
-      console.log("the product ID is " + productID + ". The file ID is " + res.data.id)
-      exports.addProductRelationship(productID, 'file', res.data.id)
-      .then((res) => {
-        console.log(res);
-      }).catch((e) => {
-        console.log(e);
-      })
-
-    })
-    .catch(function (err) {
-      console.log(err);
-    });
-
-  });
 };
 
 exports.fetchAndUploadFile = async (productID, name, url, path) => {
 
-  var file = fs.createWriteStream(name + ".jpg");
+  var file = fs.createWriteStream('./images/' + name);
 
-  await https.get(url, function(response) {
-    response.pipe(file);
+  return https.get(url, function(response) {
+    response.pipe(file).on('finish', function() {return exports.uploadFile(productID, name, './images/' + name)});
   });
-
-  return exports.uploadFile(productID, name, path)
 
 };

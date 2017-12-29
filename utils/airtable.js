@@ -23,10 +23,9 @@ exports.getAirtableRecords = function(records) {
 
                 setTimeout(function () {
 
-                    console.log('creating record ' + record.id);
+                    const processRecord = async (record) => {
 
-                    moltin.createProduct(
-                    {
+                        var createProduct = await moltin.createProduct({
                         "type": "product",
                         "name": record.fields.Name,
                         "slug": record.fields['Slug 2'],
@@ -43,27 +42,17 @@ exports.getAirtableRecords = function(records) {
                         "status": "live",
                         "stock": 5000,
                         "commodity_type": record.fields['Commodity type'].toLowerCase()
+                    })
+
+                        var addRelationship = await moltin.addProductRelationship(createProduct.data.id, 'category', moltin.category(record.fields.Categories).id)
+                        
+                        var processFile = await moltin.fetchAndUploadFile(createProduct.data.id, record.fields.Name + ".jpg", record.fields.Image[0].url, './images/' + record.fields.Name + ".jpg")
                     }
-                    )
-                    .then((res) => {
 
-                        console.log(res.data.id + " piped from airtable to moltin successfully!");
+                    console.log('creating record ' + record.id);
 
-                        var productID = res.data.id;
-
-                        return moltin.addProductRelationship(res.data.id, 'category', moltin.category(record.fields.Categories).id)
-                        .then((res) => {
-                            console.log('product associated with category successfully!');
-
-
-                            return moltin.fetchAndUploadFile(productID, record.fields.Name + ".jpg", record.fields.Image[0].url, './' + record.fields.Name + ".jpg");
-
-                        })
-                        .catch((e) => {console.log(e);});
-
-                    }).catch((e) => {
-                        console.log(e);
-                    });
+                    processRecord(record);
+                    
                 }, 2000)
             } else {
                 console.log('product is not live');

@@ -34,6 +34,10 @@ exports.category = function(name) {
 	});
 }
 
+exports.addProductCategoryRelationship = (productID, categoryID) => {
+   return Moltin.Products.CreateRelationships(productID, 'category', categoryID);
+};
+
 exports.getAllProducts = () => {return Moltin.Products.All()};
 
 exports.createProduct = (data) => {return Moltin.Products.Create(data)};

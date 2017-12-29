@@ -28,7 +28,7 @@ exports.getAirtableRecords = function() {
                     {
                         "type": "product",
                         "name": record.fields.Name,
-                        "slug": record.fields.Slug,
+                        "slug": record.fields['Slug 2'],
                         "sku":  record.fields.sku,
                         "description": record.fields.Descroption,
                         "manage_stock": true,
@@ -46,6 +46,11 @@ exports.getAirtableRecords = function() {
                 )
                 .then((res) => {
                     console.log(res.data.id + " piped from airtable to moltin successfully!");
+
+                    return addProductCategoryRelationship(res.data.id, record.fields.Categories)
+                    .then((res) => {console.log(res);})
+                    .catch((e) => {console.log(e);});
+
                 }).catch((e) => {
                     console.log(e);
                 });

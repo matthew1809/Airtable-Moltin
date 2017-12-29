@@ -3,6 +3,8 @@ var exports = module.exports = {};
 require('dotenv').config();
 const stubs = require('../stubs/moltin-stubs.js');
 const MoltinGateway = require('@moltin/sdk').gateway;
+const rp = require('request-promise');
+const fs = require('fs');
 
 const Moltin = MoltinGateway({
   client_id: process.env.CLIENT_ID,
@@ -54,4 +56,32 @@ exports.deleteAllProducts = () => {
   }).catch((e) => {
     console.log(e);
   });
-}
+};
+
+exports.uploadFile = (name, path) => {
+
+  Moltin.Authenticate().then((response) => {
+    return response;
+  })
+
+  .then((response) => {
+
+    const options = {
+      method: 'POST',
+      headers: {'Content-Type': 'multipart/form-data', 'Authorization': response.access_token},
+      uri: 'https://api.moltin.com/v2/files',
+      formData: {
+        file: fs.createReadStream(path)
+      }
+    };
+
+    return rp(options)
+    .then(function (res) {
+        console.log(res);
+    })
+    .catch(function (err) {
+        console.log(err);
+    });
+
+  });
+};

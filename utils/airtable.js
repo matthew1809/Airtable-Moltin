@@ -25,12 +25,20 @@ exports.getAirtableRecords = function(records) {
 
               const processRecord = async (record) => {
                 try {
+
+                  let desc = "none";
+
+                  if(record.fields.Descroption !== undefined) {
+                    desc = record.fields.Descroption;
+                    console.log(desc);
+                  }
+
                   var createProduct = await moltin.createProduct({
                     "type": "product",
                     "name": record.fields.Name,
                     "slug": record.fields['Slug 2'],
                     "sku":  record.fields.sku,
-                    "description": record.fields.Descroption,
+                    "description": desc,
                     "manage_stock": true,
                     "price": [
                     {
@@ -42,11 +50,14 @@ exports.getAirtableRecords = function(records) {
                     "status": "live",
                     "stock": 5000,
                     "commodity_type": record.fields['Commodity type'].toLowerCase()
-                  })
+                  });
 
-                  var addRelationship = await moltin.addProductRelationship(createProduct.data.id, 'category', moltin.category(record.fields.Categories).id)
+                  var catID = await moltin.category(record.fields.Categories).id;
                   
-                  var processFile = await moltin.fetchAndUploadFile(createProduct.data.id, record.fields.Name + ".jpg", record.fields.Image[0].url, './images/' + record.fields.Name + ".jpg")
+                  var addRelationship = await moltin.addProductRelationship(createProduct.data.id, 'category', catID)
+
+                  var processFile = await moltin.fetchAndUploadFile(createProduct.data.id, record.fields.Name + ".jpg", record.fields.Image[0].url, './images/' + record.fields.Name + ".jpg");
+
                 } catch(e) {
                   console.log(e);
                 };
@@ -55,7 +66,7 @@ exports.getAirtableRecords = function(records) {
               console.log('creating record ' + record.id);
 
               processRecord(record);
-              
+
             }, 2000)
           } else {
             console.log('product is not live');

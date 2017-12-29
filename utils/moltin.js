@@ -34,6 +34,19 @@ exports.category = function(name) {
 	});
 }
 
+exports.getAllProducts = () => {return Moltin.Products.All()};
+
 exports.createProduct = (data) => {return Moltin.Products.Create(data)};
 
 exports.deleteProduct = () => {return Moltin.Products.Delete(data)};
+
+exports.deleteAllProducts = () => {
+  return getAllProducts()
+  .then((res) => {
+    res.data.forEach(function(product) {
+      return exports.deleteProduct(product.id);
+    })
+  }).catch((e) => {
+    console.log(e);
+  });
+}

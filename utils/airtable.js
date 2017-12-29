@@ -6,10 +6,10 @@ var moltin = require('./moltin');
 var Airtable = require('airtable');
 var base = new Airtable({apiKey: process.env.AIRTABLE_API_KEY}).base(process.env.AIRTABLE_BASE);
 
-exports.getAirtableRecords = function() {
+exports.getAirtableRecords = function(records) {
         base('Veggie Bin').select({
         // Selecting the first 3 records in Grid view:
-        maxRecords: 1,
+        maxRecords: records,
         view: "Grid view"
     }).eachPage(function page(records, fetchNextPage) {
         // This function (`page`) will get called for each page of records.
@@ -45,8 +45,8 @@ exports.getAirtableRecords = function() {
                     }
                 )
                 .then((res) => {
-                    console.log(res.data.id + " piped from airtable to moltin successfully!");
 
+                    console.log(res.data.id + " piped from airtable to moltin successfully!");
                     return moltin.addProductCategoryRelationship(res.data.id, moltin.category(record.fields.Categories).id)
                     .then((res) => {console.log(res);})
                     .catch((e) => {console.log(e);});

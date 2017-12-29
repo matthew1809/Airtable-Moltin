@@ -3,3 +3,8 @@
 ## Status
 WIP
 
+## Usage
+Rename `.example.env` to `.env` and add your own variables.
+
+
+

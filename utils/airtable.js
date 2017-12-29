@@ -8,66 +8,69 @@ var Airtable = require('airtable');
 var base = new Airtable({apiKey: process.env.AIRTABLE_API_KEY}).base(process.env.AIRTABLE_BASE);
 
 exports.getAirtableRecords = function(records) {
-    base('Veggie Bin').select({
+  base('Veggie Bin').select({
         // Selecting the first 3 records in Grid view:
         maxRecords: records,
         view: "Grid view"
-    }).eachPage(function page(records, fetchNextPage) {
+      }).eachPage(function page(records, fetchNextPage) {
         // This function (`page`) will get called for each page of records.
 
         records.forEach(function(record) {
 
-            console.log('Retrieved ' + record.id);
+          console.log('Retrieved ' + record.id);
 
-            if(record.fields.Status === 'Live') {
+          if(record.fields.Status === 'Live') {
 
-                setTimeout(function () {
+            setTimeout(function () {
 
-                    console.log('creating record ' + record.id);
+              const processRecord = async (record) => {
+                try {
 
-                    moltin.createProduct(
+                  let desc = "none";
+
+                  if(record.fields.Descroption !== undefined) {
+                    desc = record.fields.Descroption;
+                    console.log(desc);
+                  }
+
+                  var createProduct = await moltin.createProduct({
+                    "type": "product",
+                    "name": record.fields.Name,
+                    "slug": record.fields['Slug 2'],
+                    "sku":  record.fields.sku,
+                    "description": desc,
+                    "manage_stock": true,
+                    "price": [
                     {
-                        "type": "product",
-                        "name": record.fields.Name,
-                        "slug": record.fields['Slug 2'],
-                        "sku":  record.fields.sku,
-                        "description": record.fields.Descroption,
-                        "manage_stock": true,
-                        "price": [
-                        {
-                            "amount": record.fields.Price.trim().slice(1,8)*100,
-                            "currency": 'USD',
-                            "includes_tax": true
-                        }
-                        ],
-                        "status": "live",
-                        "stock": 5000,
-                        "commodity_type": record.fields['Commodity type'].toLowerCase()
+                      "amount": record.fields.Price.trim().slice(1,8)*100,
+                      "currency": 'USD',
+                      "includes_tax": true
                     }
-                    )
-                    .then((res) => {
+                    ],
+                    "status": "live",
+                    "stock": 5000,
+                    "commodity_type": record.fields['Commodity type'].toLowerCase()
+                  });
 
-                        console.log(res.data.id + " piped from airtable to moltin successfully!");
+                  var catID = await moltin.category(record.fields.Categories).id;
+                  
+                  var addRelationship = await moltin.addProductRelationship(createProduct.data.id, 'category', catID)
 
-                        var productID = res.data.id;
+                  var processFile = await moltin.fetchAndUploadFile(createProduct.data.id, record.fields.Name + ".jpg", record.fields.Image[0].url, './images/' + record.fields.Name + ".jpg");
 
-                        return moltin.addProductRelationship(res.data.id, 'category', moltin.category(record.fields.Categories).id)
-                        .then((res) => {
-                            console.log('product associated with category successfully!');
+                } catch(e) {
+                  console.log(e);
+                };
+              }
 
+              console.log('creating record ' + record.id);
 
-                            return moltin.fetchAndUploadFile(productID, record.fields.Name + ".jpg", record.fields.Image[0].url, './' + record.fields.Name + ".jpg");
+              processRecord(record);
 
-                        })
-                        .catch((e) => {console.log(e);});
-
-                    }).catch((e) => {
-                        console.log(e);
-                    });
-                }, 2000)
-            } else {
-                console.log('product is not live');
-            };
+            }, 2000)
+          } else {
+            console.log('product is not live');
+          };
         });
 
         // To fetch the next page of records, call `fetchNextPage`.
@@ -75,7 +78,7 @@ exports.getAirtableRecords = function(records) {
         // If there are no more records, `done` will get called.
         fetchNextPage();
 
-    }, function done(err) {
+      }, function done(err) {
         if (err) { console.error(err); return; }
-    });
-};
+      });
+    };

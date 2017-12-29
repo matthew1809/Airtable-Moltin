@@ -1,13 +1,14 @@
 var exports = module.exports = {};
 
 require('dotenv').config()
-
+var https = require('https');
+var fs = require('fs');
 var moltin = require('./moltin');
 var Airtable = require('airtable');
 var base = new Airtable({apiKey: process.env.AIRTABLE_API_KEY}).base(process.env.AIRTABLE_BASE);
 
 exports.getAirtableRecords = function(records) {
-        base('Veggie Bin').select({
+    base('Veggie Bin').select({
         // Selecting the first 3 records in Grid view:
         maxRecords: records,
         view: "Grid view"
@@ -22,9 +23,9 @@ exports.getAirtableRecords = function(records) {
 
                 setTimeout(function () {
 
-                console.log('creating record ' + record.id);
+                    console.log('creating record ' + record.id);
 
-                moltin.createProduct(
+                    moltin.createProduct(
                     {
                         "type": "product",
                         "name": record.fields.Name,
@@ -33,27 +34,36 @@ exports.getAirtableRecords = function(records) {
                         "description": record.fields.Descroption,
                         "manage_stock": true,
                         "price": [
-                          {
+                        {
                             "amount": record.fields.Price.trim().slice(1,8)*100,
                             "currency": 'USD',
                             "includes_tax": true
-                          }
+                        }
                         ],
                         "status": "live",
                         "stock": 5000,
                         "commodity_type": record.fields['Commodity type'].toLowerCase()
                     }
-                )
-                .then((res) => {
+                    )
+                    .then((res) => {
 
-                    console.log(res.data.id + " piped from airtable to moltin successfully!");
-                    return moltin.addProductCategoryRelationship(res.data.id, moltin.category(record.fields.Categories).id)
-                    .then((res) => {console.log(res);})
-                    .catch((e) => {console.log(e);});
+                        console.log(res.data.id + " piped from airtable to moltin successfully!");
 
-                }).catch((e) => {
-                    console.log(e);
-                });
+                        var productID = res.data.id;
+
+                        return moltin.addProductRelationship(res.data.id, 'category', moltin.category(record.fields.Categories).id)
+                        .then((res) => {
+                            console.log('product associated with category successfully!');
+
+
+                            return moltin.fetchAndUploadFile(productID, record.fields.Name + ".jpg", record.fields.Image[0].url, './' + record.fields.Name + ".jpg");
+
+                        })
+                        .catch((e) => {console.log(e);});
+
+                    }).catch((e) => {
+                        console.log(e);
+                    });
                 }, 2000)
             } else {
                 console.log('product is not live');

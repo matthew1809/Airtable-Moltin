@@ -42,11 +42,12 @@ exports.getAllProducts = () => {return Moltin.Products.All()};
 
 exports.createProduct = (data) => {return Moltin.Products.Create(data)};
 
-exports.deleteProduct = () => {return Moltin.Products.Delete(data)};
+exports.deleteProduct = (data) => {return Moltin.Products.Delete(data)};
 
 exports.deleteAllProducts = () => {
-  return getAllProducts()
+  return exports.getAllProducts()
   .then((res) => {
+
     res.data.forEach(function(product) {
       return exports.deleteProduct(product.id);
     })

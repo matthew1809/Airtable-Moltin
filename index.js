@@ -4,3 +4,5 @@ const airtableUtils = require('./utils/airtable');
 
 // call our airtable functionality
 airtableUtils.getAirtableRecords();
+
+//moltinUtils.deleteAllProducts();

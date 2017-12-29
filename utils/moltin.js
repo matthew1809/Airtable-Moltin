@@ -14,12 +14,13 @@ const Moltin = MoltinGateway({
 
 const categories = [
 {'name': 'Bakery', 'id': '1686e358-40e3-4746-9bbc-ac9b21ab94ca'},
+{'name': 'Breakfast', 'id': '792fa40b-fde2-4707-9997-23ad3a963782'},
 {'name': 'Beer and Wine', 'id': '548c782f-6b62-434a-ac8c-30cd999761e6'},
 {'name': 'Beverages', 'id': '011ca5d5-765f-4e1a-bd04-9a3123326e79'},
 {'name': 'Canned Goods', 'id': '648e582b-4f6a-4139-95b6-62d379e0cadd'},
 {'name': 'Dairy & Eggs', 'id': '761abc79-cbee-4fba-97a4-df2324704dc5'},
-{'name': 'Dry Goods & pasta', 'id': 'e7788bc2-646a-4626-bf19-cc80c048ae6d'},
-{'name': 'Frozen', 'id': '2008300b-fe5c-4cf0-8f5d-912415c50dc1'},
+{'name': 'Dry Goods & Pasta', 'id': 'e7788bc2-646a-4626-bf19-cc80c048ae6d'},
+{'name': 'Freezer', 'id': '2008300b-fe5c-4cf0-8f5d-912415c50dc1'},
 {'name': 'Household', 'id': '19a9e630-f9a2-4ae5-ad52-cd234056488d'},
 {'name': 'Meat & Seafood', 'id': '451fab4d-e421-43ce-b4ba-1ad05ad28e48'},
 {'name': 'Pantry', 'id': '358d4a5b-1177-4677-9b03-fbadae1e91da'},
@@ -51,7 +52,7 @@ exports.deleteProduct = (data) => {return Moltin.Products.Delete(data)};
 exports.deleteAllProducts = async () => {
 
   var getAllProducts = await exports.getAllProducts()
-  
+
   getAllProducts.data.forEach(function(product) {
     return exports.deleteProduct(product.id);
   });
@@ -62,9 +63,9 @@ exports.manualAuth = () => {
 };
 
 exports.uploadFile = async (productID, name, path) => {
-  
+
   try {
-    var auth = await exports.manualAuth()
+    var auth = await exports.manualAuth();
 
     const options = {
       method: 'POST',
@@ -76,9 +77,10 @@ exports.uploadFile = async (productID, name, path) => {
       json: true
     };
 
-    var fetchFile = await rp(options)
+    var fetchFile = await rp(options);
 
-    var addRelationship = await exports.addProductRelationship(productID, 'file', fetchFile.data.id)
+    var addRelationship = await exports.addProductRelationship(productID, 'file', fetchFile.data.id);
+
   } catch(e) {
     console.log(e);
   };

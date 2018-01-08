@@ -8,8 +8,8 @@ var https = require('https');
 const fs = require('fs');
 
 const Moltin = MoltinGateway({
-  client_id: process.env.CLIENT_ID,
-  client_secret: process.env.CLIENT_SECRET,
+  client_id: process.env.CLIENT_ID_BURBAGES,
+  client_secret: process.env.CLIENT_SECRET_BURBAGES,
 });
 
 const categories = [

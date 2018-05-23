@@ -1,0 +1,8 @@
+Name,Sku,Slug,Description,Price,Currency,Status,Commodity Type,Stock
+a,1,g,testDesc,500,USD,live,physical,1000
+b,2,f,testDesc,500,USD,live,physical,1000
+c,3,e,testDesc,500,USD,live,physical,1000
+d,4,d,testDesc,500,USD,live,physical,1000
+e,5,c,testDesc,500,USD,live,physical,1000
+f,6,b,testDesc,500,USD,live,physical,1000
+g,7,a,testDesc,500,USD,live,physical,1000

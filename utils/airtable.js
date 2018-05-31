@@ -8,29 +8,35 @@ const files = require('./files.js');
 const base = new Airtable({apiKey: process.env.AIRTABLE_API_KEY}).base(process.env.AIRTABLE_BASE);
 const timeout = ms => new Promise(res => setTimeout(res, ms))
 
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.replace(new RegExp(search, 'g'), replacement);
+};
+
 exports.getAirtableRecords = function(baseID, records) {
   base(baseID).select({
         // Selecting the first 3 records in Grid view:
-        maxRecords: 100,
+        maxRecords: 1000,
         view: "Grid view"
       }).eachPage(function page(records, fetchNextPage) {
         // This function (`page`) will get called for each page of records.
 
         async function moltinProcess(record, desc) {
           console.log('moltinProcess running')
-          try {
-
+          //console.log(record.fields.brand);
+           try {
             var createProduct = await moltin.createProduct({
               "type": "product",
+              "vendor": "Verado",
               "name": record.fields.model,
-              "slug": record.fields.model,
+              "slug": record.fields.model + '+' + record.fields.sku,
               "sku":  record.fields.sku,
               "description": desc,
               "manage_stock": true,
               "price": [
               {
                 "amount": record.fields.watchr_price.trim().slice(1,8)*100,
-                "currency": 'EUR',
+                "currency": 'USD',
                 "includes_tax": true
               }
               ],
@@ -72,24 +78,35 @@ exports.getAirtableRecords = function(baseID, records) {
 
             console.log("product uploaded");
 
-            var brandID = await moltin.brand(record.fields.brand);
-            console.log("found brand " + brandID);
+            var brand = record.fields.Brand;
+            var formattedBrand = await brand.replaceAll(' ', '-');
+            var formattedBrand2 = await formattedBrand.replaceAll('&', 'and');
+            var formattedBrand3 = await formattedBrand2.replaceAll(/\u00f6/g, "o");
+            var formattedBrand4 = await formattedBrand3.replaceAll(/\u00fc/g, "u");
+            var formattedBrand5 = await formattedBrand4.replaceAll(/\u00E8/g, "e");
+
+            var brandID = await moltin.brand(formattedBrand5);
+
+            console.log("ready to create relationship with product ID of: " + createProduct.data.id + "and brand ID of: " + brandID);
 
             var addRelationship = await moltin.addProductRelationship(createProduct.data.id, 'brand', brandID)
             console.log("product " + createProduct.data.id + " now associated with brand " + brandID)
             
             //var processFile = await moltin.fetchAndUploadFile(createProduct.data.id, record.fields.Name + ".jpg", record.fields.Image[0].url, './images/' + record.fields.Name + ".jpg");
+  
+            //var createBrand = await moltin.createBrand({"type": 'brand', 'name': record.fields.brand, 'slug': formattedBrand5, 'status': 'live'})
 
             return("done");
 
           } catch(e) {
-            return e;
+            return (e);
           }
 
         };
 
 
         async function processThing(record) {
+
           let desc = "none";
           if(record.fields.description) {
             let desc = record.fields.description;
@@ -98,7 +115,7 @@ exports.getAirtableRecords = function(baseID, records) {
          if(record.fields.Status === 'live') {
           console.log('product is live');
           var process = await moltinProcess(record, desc);
-          var timer = await timeout(2000);
+          var timer = await timeout(3000);
           console.log(process);
           return;
 

@@ -13,14 +13,15 @@ const Moltin = MoltinGateway({
 });
 
 exports.brand = function(brandName) {
-  return Moltin.Brands.Filter({eq: {name: brandName}}).All()
+  return Moltin.Brands.Filter({eq: {slug: brandName}}).All()
   .then(brands => {
-    if(brands !== undefined) {
-      console.log(brands.data[0].id)
+    console.log(brands);
+    console.log(' for ' + brandName);
+    if(brands !== undefined && brands.data && brands.data.length > 0) {
       return brands.data[0].id;
     } else {console.log("no brand found for " + brandName)}
   }).catch((e) => {
-    console.log(e);
+    console.log("error finding brand of " + brandName + ". error of " + e);
   })
 }
 
@@ -30,7 +31,8 @@ exports.addProductRelationship = (productID, type, ID) => {
 
 exports.getAllProducts = () => {return Moltin.Products.All()};
 exports.getAllBrands = () => {return Moltin.Brands.All()};
-exports.createBrand = (data) => {return Moltin.Brands.Create(data)};
+
+exports.createBrand = async (data) => {return Moltin.Brands.Create(data)};
 exports.createProduct = (data) => {return Moltin.Products.Create(data)};
 
 exports.deleteProduct = (data) => {return Moltin.Products.Delete(data)};
@@ -98,6 +100,6 @@ exports.downloadFiles = function(record) {
   })
 };
 
-exports.addFlowrelationship = async () => {
+exports.addFlowrelationship = async (productID) => {
 
 };

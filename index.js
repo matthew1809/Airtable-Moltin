@@ -3,6 +3,6 @@ const moltinUtils = require('./utils/moltin');
 const airtableUtils = require('./utils/airtable');
 
 // call our airtable functionality
-airtableUtils.getAirtableRecords('Verado 1');
+airtableUtils.getAirtableRecords('Imported table');
 
-//moltinUtils.deleteAllProducts();
+//moltinUtils.deleteAllBrands();

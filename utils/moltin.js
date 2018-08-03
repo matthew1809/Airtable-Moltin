@@ -38,14 +38,48 @@ exports.createProduct = (data) => {return Moltin.Products.Create(data)};
 exports.deleteProduct = (data) => {return Moltin.Products.Delete(data)};
 exports.deleteBrand = (data) => {return Moltin.Brands.Delete(data)};
 
-exports.deleteAllProducts = async () => {
 
-  var getAllProducts = await exports.getAllProducts()
+exports.deleteAllProducts = async (PageOffsetCounter) => {
+  return new Promise(function(resolve, reject) {
 
-  getAllProducts.data.forEach(function(product) {
-    return exports.deleteProduct(product.id);
+    console.log("PageOffsetCounter is", PageOffsetCounter);
+
+    Moltin.Products.Sort("created_at")
+      .Limit(100)
+      .Offset(PageOffsetCounter)
+      .All()
+      .then(products => {
+        PageOffsetCounter = PageOffsetCounter + 100;
+        
+        if (PageOffsetCounter < products.meta.results.all) {
+          products.data.forEach(function(product) {
+            exports.deleteProduct(product.id);
+          });
+          return GetProducts(PageOffsetCounter, productsArray);
+        } else {
+          console.log("no more pages left to fetch");
+          let productsLeft = products.meta.results.all - (PageOffsetCounter - 100);
+          let productsLeftCounter = 0;
+          console.log(productsLeft);
+
+          products.data.forEach(function(product) {
+            exports.deleteProduct(product.id);
+            productsLeftCounter++
+          });
+          if (productsLeftCounter === productsLeft) {
+            console.log("finished processing");
+            return Promise.resolve('finished');
+          }
+        }
+      })
+      .then(products => resolve(products))
+      .catch(e => {
+        console.log(e);
+        reject(e);
+      });
   });
 };
+
 
 exports.deleteAllBrands = async () => {
 

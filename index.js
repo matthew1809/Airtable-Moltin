@@ -6,3 +6,4 @@ const airtableUtils = require('./utils/airtable');
 airtableUtils.getAirtableRecords('Imported table');
 
 //moltinUtils.deleteAllBrands();
+//moltinUtils.deleteAllProducts();
